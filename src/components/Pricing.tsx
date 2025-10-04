@@ -1,4 +1,4 @@
-import { Shield, Zap, CreditCard, Settings, Download, Eye, ChevronRight } from 'lucide-react';
+import { Shield, Zap, CreditCard, Settings, Download, Eye, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const features = [
@@ -55,15 +55,34 @@ const features = [
 ];
 
 export default function Pricing() {
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<'left' | 'right'>('right');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveCardIndex((prev) => (prev + 1) % features.length);
-    }, 3000);
+      setDirection('right');
+      setActiveIndex((prev) => (prev + 1) % features.length);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const goToSlide = (index: number) => {
+    setDirection(index > activeIndex ? 'right' : 'left');
+    setActiveIndex(index);
+  };
+
+  const goToPrevious = () => {
+    setDirection('left');
+    setActiveIndex((prev) => (prev - 1 + features.length) % features.length);
+  };
+
+  const goToNext = () => {
+    setDirection('right');
+    setActiveIndex((prev) => (prev + 1) % features.length);
+  };
+
+  const activeFeature = features[activeIndex];
 
   return (
     <section id="pricing" className="py-20 px-6 bg-gradient-to-b from-black via-gray-950 to-black relative overflow-hidden">
@@ -80,130 +99,104 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-6">
-          {features.slice(0, 3).map((feature, index) => (
-            <div
-              key={index}
-              className={`group relative bg-gradient-to-br from-gray-900/90 via-gray-900/50 to-gray-900/90 border border-gray-800 p-8 rounded-2xl transition-all duration-500 hover:scale-105 overflow-hidden animate-fade-in ${
-                activeCardIndex === index ? 'border-gray-600 shadow-2xl shadow-gray-500/20' : 'hover:border-gray-700 hover:shadow-2xl hover:shadow-gray-500/10'
-              }`}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Animated background gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br from-gray-600/5 to-gray-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+        {/* Carousel Container */}
+        <div className="relative max-w-4xl mx-auto">
+          {/* Navigation Buttons */}
+          <button
+            onClick={goToPrevious}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-20 bg-gray-900/80 border border-gray-700 p-3 rounded-full hover:bg-gray-800 hover:border-gray-600 transition-all hover:scale-110 backdrop-blur-sm"
+            aria-label="Previous feature"
+          >
+            <ChevronLeft className="w-6 h-6 text-gray-300" />
+          </button>
 
-              {/* Animated border shimmer */}
-              <div className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${activeCardIndex === index ? 'opacity-100' : ''}`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-500/20 to-transparent translate-x-[-200%] animate-shimmer" />
-              </div>
+          <button
+            onClick={goToNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-20 bg-gray-900/80 border border-gray-700 p-3 rounded-full hover:bg-gray-800 hover:border-gray-600 transition-all hover:scale-110 backdrop-blur-sm"
+            aria-label="Next feature"
+          >
+            <ChevronRight className="w-6 h-6 text-gray-300" />
+          </button>
 
-              <div className="relative z-10">
-                <div className="mb-6 relative">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-500 opacity-10 absolute inset-0 blur-xl group-hover:opacity-20 transition-opacity" />
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-500 p-4 relative flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-10 h-10 text-white" />
+          {/* Carousel Content */}
+          <div className="relative overflow-hidden rounded-2xl min-h-[500px]">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                  index === activeIndex
+                    ? 'opacity-100 translate-x-0'
+                    : index < activeIndex
+                    ? 'opacity-0 -translate-x-full'
+                    : 'opacity-0 translate-x-full'
+                }`}
+              >
+                <div className="relative bg-gradient-to-br from-gray-900/90 via-gray-900/50 to-gray-900/90 border border-gray-700 p-12 rounded-2xl overflow-hidden shadow-2xl shadow-gray-500/20 h-full">
+                  {/* Animated border shimmer */}
+                  <div className="absolute inset-0 opacity-100">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-500/20 to-transparent translate-x-[-200%] animate-shimmer" />
+                  </div>
+
+                  {/* Animated background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-600/5 to-gray-500/5 opacity-50" />
+
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    {/* Icon */}
+                    <div className="mb-8 relative">
+                      <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-gray-600 to-gray-500 opacity-10 absolute inset-0 blur-2xl animate-pulse" />
+                      <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-gray-600 to-gray-500 p-6 relative flex items-center justify-center">
+                        <feature.icon className="w-16 h-16 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                      {feature.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-400 text-lg leading-relaxed mb-10 max-w-2xl">
+                      {feature.description}
+                    </p>
+
+                    {/* Animated stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl">
+                      {feature.stats.map((stat, statIndex) => (
+                        <div
+                          key={statIndex}
+                          className="bg-gray-800/50 rounded-xl border border-gray-700 p-6 transition-all duration-500 hover:border-gray-600 hover:bg-gray-800/70"
+                          style={{
+                            animation: 'slideUp 0.6s ease-out forwards',
+                            animationDelay: `${statIndex * 100 + 200}ms`,
+                            opacity: 0
+                          }}
+                        >
+                          <div className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+                            {stat.value}
+                          </div>
+                          <div className="text-sm text-gray-500 font-medium">
+                            {stat.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  {feature.title}
-                </h3>
-
-                <p className="text-gray-400 leading-relaxed mb-6">
-                  {feature.description}
-                </p>
-
-                {/* Animated stats slideshow */}
-                <div className="space-y-2 min-h-[80px]">
-                  {feature.stats.map((stat, statIndex) => (
-                    <div
-                      key={statIndex}
-                      className={`flex items-center justify-between py-2 px-3 bg-gray-800/50 rounded-lg border border-gray-800 transition-all duration-500 ${
-                        activeCardIndex === index
-                          ? 'opacity-100 translate-x-0'
-                          : 'opacity-50'
-                      }`}
-                      style={{
-                        transitionDelay: activeCardIndex === index ? `${statIndex * 100}ms` : '0ms'
-                      }}
-                    >
-                      <span className="text-sm text-gray-500">{stat.label}</span>
-                      <span className="text-sm font-bold text-white">{stat.value}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {features.slice(3).map((feature, index) => (
-            <div
-              key={index + 3}
-              className={`group relative bg-gradient-to-br from-gray-900/90 via-gray-900/50 to-gray-900/90 border border-gray-800 p-8 rounded-2xl transition-all duration-500 hover:scale-105 overflow-hidden animate-fade-in ${
-                activeCardIndex === (index + 3) ? 'border-gray-600 shadow-2xl shadow-gray-500/20' : 'hover:border-gray-700 hover:shadow-2xl hover:shadow-gray-500/10'
-              }`}
-              style={{ animationDelay: `${(index + 3) * 100}ms` }}
-            >
-              {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-600/5 to-gray-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              {/* Animated border shimmer */}
-              <div className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${activeCardIndex === (index + 3) ? 'opacity-100' : ''}`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-500/20 to-transparent translate-x-[-200%] animate-shimmer" />
-              </div>
-
-              <div className="relative z-10">
-                <div className="mb-6 relative">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-500 opacity-10 absolute inset-0 blur-xl group-hover:opacity-20 transition-opacity" />
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-500 p-4 relative flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-10 h-10 text-white" />
-                  </div>
-                </div>
-
-                <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  {feature.title}
-                </h3>
-
-                <p className="text-gray-400 leading-relaxed mb-6">
-                  {feature.description}
-                </p>
-
-                {/* Animated stats slideshow */}
-                <div className="space-y-2 min-h-[80px]">
-                  {feature.stats.map((stat, statIndex) => (
-                    <div
-                      key={statIndex}
-                      className={`flex items-center justify-between py-2 px-3 bg-gray-800/50 rounded-lg border border-gray-800 transition-all duration-500 ${
-                        activeCardIndex === (index + 3)
-                          ? 'opacity-100 translate-x-0'
-                          : 'opacity-50'
-                      }`}
-                      style={{
-                        transitionDelay: activeCardIndex === (index + 3) ? `${statIndex * 100}ms` : '0ms'
-                      }}
-                    >
-                      <span className="text-sm text-gray-500">{stat.label}</span>
-                      <span className="text-sm font-bold text-white">{stat.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Progress indicators */}
-        <div className="flex justify-center gap-2 mt-12">
+        <div className="flex justify-center gap-3 mt-12">
           {features.map((_, index) => (
             <button
               key={index}
-              onClick={() => setActiveCardIndex(index)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                activeCardIndex === index
-                  ? 'w-8 bg-gradient-to-r from-gray-600 to-gray-500'
-                  : 'w-2 bg-gray-800 hover:bg-gray-700'
+              onClick={() => goToSlide(index)}
+              className={`h-3 rounded-full transition-all duration-500 ${
+                activeIndex === index
+                  ? 'w-12 bg-gradient-to-r from-gray-600 to-gray-500'
+                  : 'w-3 bg-gray-800 hover:bg-gray-700'
               }`}
               aria-label={`View feature ${index + 1}`}
             />
