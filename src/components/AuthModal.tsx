@@ -43,11 +43,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-gray-800 rounded-lg w-full max-w-md p-8 animate-in"
+        className="bg-gray-900 border border-gray-800 rounded-lg w-full max-w-md p-8 animate-in zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
