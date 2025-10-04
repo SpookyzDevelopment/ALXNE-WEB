@@ -49,8 +49,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-      <div className="bg-gray-900 border border-gray-800 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg w-full max-w-2xl max-h-[85vh] my-auto overflow-hidden flex flex-col animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-6 h-6 text-gray-300" />
