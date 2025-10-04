@@ -51,7 +51,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         {product.is_featured && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
             FEATURED
           </div>
@@ -69,7 +69,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
             </h3>
             <p className="text-sm text-gray-500">{product.category}</p>
           </div>
-          <div className="text-2xl font-bold whitespace-nowrap ml-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <div className="text-2xl font-bold whitespace-nowrap ml-4 bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
             ${product.price}
           </div>
         </div>
@@ -79,8 +79,8 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
         <div className="space-y-2 mb-4">
           {product.features.slice(0, 3).map((feature, index) => (
             <div key={index} className="flex items-center gap-2 text-sm text-gray-400">
-              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full p-0.5">
-                <Check className="w-3 h-3 text-cyan-400" strokeWidth={3} />
+              <div className="bg-gradient-to-br from-gray-600/20 to-gray-500/20 rounded-full p-0.5">
+                <Check className="w-3 h-3 text-gray-300" strokeWidth={3} />
               </div>
               <span className="line-clamp-1">{feature}</span>
             </div>
@@ -95,7 +95,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
               ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
               : isAdding
               ? 'bg-green-500 text-white'
-              : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40'
+              : 'bg-gradient-to-r from-gray-600 to-gray-500 text-white hover:from-gray-500 hover:to-gray-400 shadow-lg shadow-gray-500/25 hover:shadow-gray-500/40'
           }`}
         >
           {isAdding ? (

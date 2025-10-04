@@ -43,7 +43,7 @@ export default function Header() {
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
               <Shield className="w-8 h-8 text-white group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-              <div className="absolute inset-0 bg-cyan-500 blur-lg opacity-0 group-hover:opacity-50 transition-opacity" />
+              <div className="absolute inset-0 bg-gray-500 blur-lg opacity-0 group-hover:opacity-50 transition-opacity" />
             </div>
             <span className="text-2xl font-bold tracking-wider bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               ALXNE
@@ -71,7 +71,7 @@ export default function Header() {
               Contact
             </a>
             <CartButton />
-            <button className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all hover:scale-105 shadow-lg shadow-blue-500/25">
+            <button className="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:from-gray-500 hover:to-gray-400 transition-all hover:scale-105 shadow-lg shadow-gray-500/25">
               Get Started
             </button>
           </div>
@@ -96,7 +96,7 @@ export default function Header() {
             </Link>
             <a href="#pricing" onClick={(e) => scrollToSection(e, '#pricing')} className="block text-gray-300 hover:text-white transition-colors">Pricing</a>
             <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="block text-gray-300 hover:text-white transition-colors">Contact</a>
-            <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg shadow-blue-500/25">
+            <button className="w-full bg-gradient-to-r from-gray-600 to-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:from-gray-500 hover:to-gray-400 transition-all shadow-lg shadow-gray-500/25">
               Get Started
             </button>
           </div>

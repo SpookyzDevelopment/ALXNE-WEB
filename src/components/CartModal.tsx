@@ -49,7 +49,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
       <div className="bg-gray-900 border border-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6 text-cyan-400" />
+            <ShoppingBag className="w-6 h-6 text-gray-300" />
             <h2 className="text-2xl font-bold">Your Cart</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -113,7 +113,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
           <div className="border-t border-gray-800 p-6 space-y-4">
             <div className="flex justify-between items-center text-xl font-bold">
               <span>Total:</span>
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
                 ${total.toFixed(2)}
               </span>
             </div>
@@ -124,7 +124,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               >
                 Clear Cart
               </button>
-              <button className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition-all">
+              <button className="flex-1 py-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-sm font-medium hover:from-gray-500 hover:to-gray-400 transition-all">
                 Checkout
               </button>
             </div>

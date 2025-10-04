@@ -60,7 +60,7 @@ export default function Products() {
     return (
       <div className="min-h-screen pt-32 pb-20 px-6 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+          <div className="w-16 h-16 border-4 border-gray-500/30 border-t-gray-500 rounded-full animate-spin" />
           <p className="text-gray-400 text-lg">Loading products...</p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function Products() {
           <p className="text-red-400 text-lg mb-4">{error}</p>
           <button
             onClick={fetchProducts}
-            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all"
+            className="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:from-gray-500 hover:to-gray-400 transition-all"
           >
             Try Again
           </button>
@@ -89,7 +89,7 @@ export default function Products() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
-            Our <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Products</span>
+            Our <span className="bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Products</span>
           </h1>
           <p className="text-xl text-gray-400">
             Explore our complete catalog of premium digital products and services
@@ -104,7 +104,7 @@ export default function Products() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+              className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500/50 transition-colors"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function Products() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-500 text-white shadow-lg shadow-gray-500/25'
                     : 'bg-gray-900 text-gray-400 border border-gray-800 hover:border-gray-700'
                 }`}
               >
