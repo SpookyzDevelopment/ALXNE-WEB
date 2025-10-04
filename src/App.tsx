@@ -1,21 +1,21 @@
-import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import Features from './components/Features';
-import Pricing from './components/Pricing';
 import Footer from './components/Footer';
+import Home from './pages/Home';
+import Products from './pages/Products';
 
 function App() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header />
-      <Hero />
-      <Services />
-      <Features />
-      <Pricing />
-      <Footer />
-    </div>
+    <Router>
+      <div className="min-h-screen bg-black text-white">
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
