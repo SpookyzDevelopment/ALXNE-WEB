@@ -21,4 +21,11 @@ export interface Product {
   features: string[];
   created_at: string;
   updated_at: string;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  discount_percentage?: number;
+  original_price?: number;
+  average_rating?: number;
+  review_count?: number;
+  views_count?: number;
 }

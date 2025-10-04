@@ -1,4 +1,5 @@
 import { Shield, Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
@@ -18,20 +19,20 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Services</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Account Management</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Security Solutions</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Enterprise Support</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">API Access</a></li>
+              <li><Link to="/products" className="hover:text-white transition-colors">Products</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link to="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              <li><Link to="/how-it-works" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition-colors">Help Center</Link></li>
+              <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
 

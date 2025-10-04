@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import CartButton from './CartButton';
 import AuthModal from './AuthModal';
+import NotificationBell from './NotificationBell';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
@@ -75,6 +76,7 @@ export default function Header() {
             <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="text-gray-400 hover:text-white transition-colors">
               Contact
             </a>
+            <NotificationBell />
             <CartButton />
             {user ? (
               <div className="relative">

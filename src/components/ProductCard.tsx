@@ -1,5 +1,5 @@
 import { Product } from '../lib/supabase';
-import { ShoppingCart, Check, Tag, Sparkles } from 'lucide-react';
+import { ShoppingCart, Check, Tag, Sparkles, Star, Percent } from 'lucide-react';
 import { addToCart } from '../utils/cart';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -52,12 +52,20 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          {product.is_featured && (
-            <div className="absolute top-3 left-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              FEATURED
-            </div>
-          )}
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {product.is_featured && (
+              <div className="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                FEATURED
+              </div>
+            )}
+            {product.discount_percentage && product.discount_percentage > 0 && (
+              <div className="bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
+                <Percent className="w-3 h-3" />
+                {product.discount_percentage}% OFF
+              </div>
+            )}
+          </div>
           <div className="absolute top-3 right-3">
             {getStockBadge()}
           </div>
@@ -72,9 +80,37 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                 {product.name}
               </h3>
               <p className="text-sm text-gray-500">{product.category}</p>
+              {product.average_rating && product.average_rating > 0 && (
+                <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i < Math.round(product.average_rating!)
+                            ? 'fill-yellow-500 text-yellow-500'
+                            : 'text-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500">({product.review_count || 0})</span>
+                </div>
+              )}
             </div>
-            <div className="text-2xl font-bold whitespace-nowrap ml-4 bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
-              ${product.price}
+            <div className="flex flex-col items-end ml-4">
+              {product.discount_percentage && product.discount_percentage > 0 && product.original_price ? (
+                <>
+                  <span className="text-sm text-gray-500 line-through">${product.original_price}</span>
+                  <span className="text-2xl font-bold whitespace-nowrap bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+                    ${product.price}
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold whitespace-nowrap bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+                  ${product.price}
+                </span>
+              )}
             </div>
           </div>
 

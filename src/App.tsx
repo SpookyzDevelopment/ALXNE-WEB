@@ -10,6 +10,11 @@ import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
+import FAQ from './pages/FAQ';
+import Contact from './pages/Contact';
+import HowItWorks from './pages/HowItWorks';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function App() {
   return (
@@ -26,6 +31,11 @@ function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
           <Footer />
         </div>
