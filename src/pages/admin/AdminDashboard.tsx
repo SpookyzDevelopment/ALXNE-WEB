@@ -11,7 +11,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { supabase } from '../../lib/supabase';
+import { dataService } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 interface Stats {
@@ -50,27 +50,22 @@ export default function AdminDashboard() {
     }
   }, [admin]);
 
-  const fetchStats = async () => {
+  const fetchStats = () => {
     try {
-      const [users, orders, products, notifications, sales, tickets] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('orders').select('total'),
-        supabase.from('products').select('id', { count: 'exact', head: true }),
-        supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('read', false),
-        supabase.from('sales_campaigns').select('id', { count: 'exact', head: true }).eq('active', true),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-      ]);
+      const products = dataService.getProducts();
+      const orders = dataService.getOrders();
+      const customers = dataService.getCustomers();
 
-      const totalRevenue = orders.data?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
+      const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
 
       setStats({
-        totalUsers: users.count || 0,
-        totalOrders: orders.data?.length || 0,
+        totalUsers: customers.length,
+        totalOrders: orders.length,
         totalRevenue,
-        totalProducts: products.count || 0,
-        activeNotifications: notifications.count || 0,
-        activeSales: sales.count || 0,
-        pendingTickets: tickets.count || 0,
+        totalProducts: products.length,
+        activeNotifications: 0,
+        activeSales: 0,
+        pendingTickets: 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

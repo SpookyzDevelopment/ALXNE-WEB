@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, Package, CheckCircle } from 'lucide-react';
-import { supabase, Product } from '../lib/supabase';
+import { dataService, Product } from '../services/dataService';
 import { addToCart } from '../utils/cart';
-import { useAuth } from '../contexts/AuthContext';
 
 interface Review {
   id: string;
@@ -27,22 +26,12 @@ export default function ProductDetail() {
   useEffect(() => {
     if (id) {
       fetchProduct();
-      fetchReviews();
-      if (user) {
-        checkWishlist();
-      }
     }
-  }, [id, user]);
+  }, [id]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = dataService.getProduct(id!);
       if (!data) {
         navigate('/products');
         return;
@@ -56,60 +45,21 @@ export default function ProductDetail() {
     }
   };
 
-  const fetchReviews = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('product_id', id)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setReviews(data || []);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    }
-  };
 
-  const checkWishlist = async () => {
-    if (!user) return;
-    try {
-      const { data } = await supabase
-        .from('wishlists')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('product_id', id)
-        .maybeSingle();
+  const toggleWishlist = () => {
+    const wishlistData = localStorage.getItem('wishlist');
+    let wishlist: string[] = wishlistData ? JSON.parse(wishlistData) : [];
 
-      setInWishlist(!!data);
-    } catch (error) {
-      console.error('Error checking wishlist:', error);
-    }
-  };
-
-  const toggleWishlist = async () => {
-    if (!user) {
-      alert('Please sign in to use the wishlist');
-      return;
+    if (inWishlist) {
+      wishlist = wishlist.filter(pid => pid !== id);
+      setInWishlist(false);
+    } else {
+      wishlist.push(id!);
+      setInWishlist(true);
     }
 
-    try {
-      if (inWishlist) {
-        await supabase
-          .from('wishlists')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', id);
-        setInWishlist(false);
-      } else {
-        await supabase
-          .from('wishlists')
-          .insert({ user_id: user.id, product_id: id });
-        setInWishlist(true);
-      }
-    } catch (error) {
-      console.error('Error toggling wishlist:', error);
-    }
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
   };
 
   const handleAddToCart = () => {
@@ -122,39 +72,43 @@ export default function ProductDetail() {
     });
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
+  const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert('Please sign in to leave a review');
-      return;
-    }
-
     setSubmittingReview(true);
-    try {
-      const { error } = await supabase
-        .from('reviews')
-        .insert({
-          product_id: id,
-          user_id: user.id,
-          rating: newReview.rating,
-          comment: newReview.comment
-        });
 
-      if (error) throw error;
+    const reviewsData = localStorage.getItem('reviews');
+    const allReviews = reviewsData ? JSON.parse(reviewsData) : [];
 
-      setNewReview({ rating: 5, comment: '' });
-      fetchReviews();
-    } catch (error: any) {
-      console.error('Error submitting review:', error);
-      alert(error.message || 'Failed to submit review');
-    } finally {
-      setSubmittingReview(false);
-    }
+    const newReviewItem: Review = {
+      id: Date.now().toString(),
+      rating: newReview.rating,
+      comment: newReview.comment,
+      created_at: new Date().toISOString(),
+      user_id: 'guest'
+    };
+
+    allReviews.push({ ...newReviewItem, product_id: id });
+    localStorage.setItem('reviews', JSON.stringify(allReviews));
+
+    setReviews([newReviewItem, ...reviews]);
+    setNewReview({ rating: 5, comment: '' });
+    setSubmittingReview(false);
   };
 
-  const averageRating = reviews.length > 0
+  useEffect(() => {
+    const wishlistData = localStorage.getItem('wishlist');
+    const wishlist: string[] = wishlistData ? JSON.parse(wishlistData) : [];
+    setInWishlist(wishlist.includes(id!));
+
+    const reviewsData = localStorage.getItem('reviews');
+    const allReviews = reviewsData ? JSON.parse(reviewsData) : [];
+    const productReviews = allReviews.filter((r: any) => r.product_id === id);
+    setReviews(productReviews);
+  }, [id]);
+
+  const averageRating = product?.rating || (reviews.length > 0
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
-    : 0;
+    : 0);
 
   if (loading) {
     return (
@@ -257,8 +211,7 @@ export default function ProductDetail() {
         <div className="border-t border-gray-800 pt-16">
           <h2 className="text-3xl font-bold mb-8">Customer Reviews</h2>
 
-          {user && (
-            <form onSubmit={handleSubmitReview} className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-lg p-6 mb-8">
+          <form onSubmit={handleSubmitReview} className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-lg p-6 mb-8">
               <h3 className="text-xl font-bold mb-4">Write a Review</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Rating</label>
@@ -294,7 +247,6 @@ export default function ProductDetail() {
                 {submittingReview ? 'Submitting...' : 'Submit Review'}
               </button>
             </form>
-          )}
 
           {reviews.length === 0 ? (
             <div className="text-center py-12 bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-lg">

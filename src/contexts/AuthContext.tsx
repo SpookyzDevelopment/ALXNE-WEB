@@ -1,9 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+
+interface SimpleUser {
+  id: string;
+  email: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: SimpleUser | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -13,36 +16,74 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SimpleUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setUser(session?.user ?? null);
-      })();
-    });
-
-    return () => subscription.unsubscribe();
+    const storedUser = localStorage.getItem('auth_user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+      }
+    }
+    setLoading(false);
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error };
+    try {
+      const usersData = localStorage.getItem('app_users');
+      const users = usersData ? JSON.parse(usersData) : [];
+
+      if (users.find((u: any) => u.email === email)) {
+        return { error: { message: 'User already exists' } };
+      }
+
+      const newUser: SimpleUser = {
+        id: Date.now().toString(),
+        email
+      };
+
+      users.push({ ...newUser, password });
+      localStorage.setItem('app_users', JSON.stringify(users));
+      localStorage.setItem('auth_user', JSON.stringify(newUser));
+      setUser(newUser);
+
+      return { error: null };
+    } catch (error) {
+      return { error: { message: 'Sign up failed' } };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const usersData = localStorage.getItem('app_users');
+      const users = usersData ? JSON.parse(usersData) : [];
+
+      const foundUser = users.find((u: any) => u.email === email && u.password === password);
+
+      if (!foundUser) {
+        return { error: { message: 'Invalid login credentials' } };
+      }
+
+      const loggedInUser: SimpleUser = {
+        id: foundUser.id,
+        email: foundUser.email
+      };
+
+      localStorage.setItem('auth_user', JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+
+      return { error: null };
+    } catch (error) {
+      return { error: { message: 'Sign in failed' } };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('auth_user');
+    setUser(null);
   };
 
   return (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, CreditCard as Edit, Trash2, Search, Save } from 'lucide-react';
-import { supabase, Product } from '../../lib/supabase';
+import { dataService, Product } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function Products() {
@@ -14,15 +14,10 @@ export default function Products() {
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchProducts = () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
+      const data = dataService.getProducts();
+      setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -30,34 +25,31 @@ export default function Products() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
-      setProducts(products.filter((p) => p.id !== id));
+      const success = dataService.deleteProduct(id);
+      if (success) {
+        setProducts(products.filter((p) => p.id !== id));
+      } else {
+        alert('Failed to delete product');
+      }
     } catch (error) {
       console.error('Error deleting product:', error);
       alert('Failed to delete product');
     }
   };
 
-  const handleSave = async (product: Partial<Product>) => {
+  const handleSave = (product: Partial<Product>) => {
     try {
       if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update(product)
-          .eq('id', editingProduct.id);
-
-        if (error) throw error;
+        dataService.updateProduct(editingProduct.id, product);
       } else {
-        const { error } = await supabase.from('products').insert(product);
-        if (error) throw error;
+        dataService.createProduct(product as Omit<Product, 'id' | 'created_at'>);
       }
 
-      await fetchProducts();
+      fetchProducts();
       setEditingProduct(null);
       setShowCreateModal(false);
     } catch (error) {
@@ -203,9 +195,9 @@ function ProductModal({
     category: product?.category || '',
     image_url: product?.image_url || '',
     stock_status: product?.stock_status || 'in_stock',
-    stock_quantity: product?.stock_quantity || 100,
-    discount_percentage: product?.discount_percentage || 0,
     is_featured: product?.is_featured || false,
+    rating: product?.rating || 4.5,
+    features: product?.features || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -262,7 +254,7 @@ function ProductModal({
             />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-400 mb-2">Price ($)</label>
               <input
@@ -276,29 +268,16 @@ function ProductModal({
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Stock Quantity</label>
+              <label className="block text-sm text-gray-400 mb-2">Rating (0-5)</label>
               <input
                 type="number"
-                value={formData.stock_quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock_quantity: parseInt(e.target.value) })
-                }
+                step="0.1"
+                min="0"
+                max="5"
+                value={formData.rating}
+                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none"
                 required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Discount (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={formData.discount_percentage}
-                onChange={(e) =>
-                  setFormData({ ...formData, discount_percentage: parseInt(e.target.value) })
-                }
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none"
               />
             </div>
           </div>

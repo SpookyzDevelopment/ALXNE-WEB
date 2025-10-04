@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase, Product } from '../lib/supabase';
 import { Filter, Search, Package } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import { dataService, Product } from '../services/dataService';
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,16 +21,11 @@ export default function Products() {
     filterProducts();
   }, [products, selectedCategory, searchQuery]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = () => {
     try {
       setError(null);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
+      const data = dataService.getProducts();
+      setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
       setError('Failed to load products. Please try again later.');

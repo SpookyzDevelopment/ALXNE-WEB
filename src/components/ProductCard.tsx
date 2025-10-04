@@ -1,4 +1,4 @@
-import { Product } from '../lib/supabase';
+import { Product } from '../services/dataService';
 import { ShoppingCart, Check, Tag, Sparkles, Star, Percent } from 'lucide-react';
 import { addToCart } from '../utils/cart';
 import { useState } from 'react';

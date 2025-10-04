@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase, Product } from '../lib/supabase';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
+import { dataService, Product } from '../services/dataService';
 
 export default function FeaturedProducts() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -12,17 +12,10 @@ export default function FeaturedProducts() {
     fetchFeaturedProducts();
   }, []);
 
-  const fetchFeaturedProducts = async () => {
+  const fetchFeaturedProducts = () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_featured', true)
-        .order('created_at', { ascending: false })
-        .limit(4);
-
-      if (error) throw error;
-      setFeaturedProducts(data || []);
+      const data = dataService.getFeaturedProducts().slice(0, 4);
+      setFeaturedProducts(data);
     } catch (error) {
       console.error('Error fetching featured products:', error);
     } finally {
