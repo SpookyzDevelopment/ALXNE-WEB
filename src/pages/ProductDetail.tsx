@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, Package, CheckCircle } from 'lucide-react';
-import { dataService, Product } from '../services/dataService';
+import { supabaseDataService, Product } from '../services/supabaseDataService';
 import { addToCart } from '../utils/cart';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -28,33 +28,11 @@ export default function ProductDetail() {
     if (id) {
       fetchProduct();
     }
-
-    const handleProductsUpdated = () => {
-      if (id) {
-        console.log('Product detail update event received');
-        fetchProduct();
-      }
-    };
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if ((e.key === 'alxne_products' || e.key === null) && id) {
-        console.log('Product detail storage change detected');
-        fetchProduct();
-      }
-    };
-
-    window.addEventListener('products-updated', handleProductsUpdated);
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('products-updated', handleProductsUpdated);
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, [id]);
 
-  const fetchProduct = () => {
+  const fetchProduct = async () => {
     try {
-      const data = dataService.getProduct(id!);
+      const data = await supabaseDataService.getProduct(id!);
       if (!data) {
         navigate('/products');
         return;

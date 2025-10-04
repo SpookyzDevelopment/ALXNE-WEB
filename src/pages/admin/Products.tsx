@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, CreditCard as Edit, Trash2, Search, Save } from 'lucide-react';
-import { dataService, Product } from '../../services/dataService';
+import { supabaseDataService, Product } from '../../services/supabaseDataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function Products() {
@@ -12,31 +12,11 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
-
-    const handleProductsUpdated = () => {
-      console.log('Admin products list update event received');
-      fetchProducts();
-    };
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'alxne_products' || e.key === null) {
-        console.log('Admin products storage change detected');
-        fetchProducts();
-      }
-    };
-
-    window.addEventListener('products-updated', handleProductsUpdated);
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('products-updated', handleProductsUpdated);
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     try {
-      const data = dataService.getProducts();
+      const data = await supabaseDataService.getProducts();
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -45,11 +25,11 @@ export default function Products() {
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product? It will be removed from the website immediately.')) return;
 
     try {
-      const success = dataService.deleteProduct(id);
+      const success = await supabaseDataService.deleteProduct(id);
       if (success) {
         setProducts(products.filter((p) => p.id !== id));
         alert('Product deleted successfully! It has been removed from the website.');
@@ -62,13 +42,13 @@ export default function Products() {
     }
   };
 
-  const handleSave = (product: Partial<Product>) => {
+  const handleSave = async (product: Partial<Product>) => {
     try {
       if (editingProduct) {
-        dataService.updateProduct(editingProduct.id, product);
+        await supabaseDataService.updateProduct(editingProduct.id, product);
         alert('Product updated successfully! Changes are now live on the website.');
       } else {
-        dataService.createProduct(product as Omit<Product, 'id' | 'created_at'>);
+        await supabaseDataService.createProduct(product as Omit<Product, 'id' | 'created_at'>);
         alert('Product created successfully! It is now visible on the website.');
       }
 

@@ -1,18 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, Calendar, Percent, Check, X } from 'lucide-react';
-import { dataService, Product } from '../../services/dataService';
+import { supabaseDataService, Product, SalesCampaign } from '../../services/supabaseDataService';
 import AdminLayout from '../../components/admin/AdminLayout';
-
-interface SalesCampaign {
-  id: string;
-  name: string;
-  description: string;
-  discount_percentage: number;
-  start_date: string;
-  end_date: string;
-  active: boolean;
-  product_ids: string[];
-}
 
 export default function Sales() {
   const [campaigns, setCampaigns] = useState<SalesCampaign[]>([]);
@@ -24,14 +13,15 @@ export default function Sales() {
     fetchData();
   }, []);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     try {
-      const campaignsData = localStorage.getItem('sales_campaigns');
-      const campaigns = campaignsData ? JSON.parse(campaignsData) : [];
-      const products = dataService.getProducts();
+      const [campaignsData, productsData] = await Promise.all([
+        supabaseDataService.getSalesCampaigns(),
+        supabaseDataService.getProducts()
+      ]);
 
-      setCampaigns(campaigns);
-      setProducts(products);
+      setCampaigns(campaignsData);
+      setProducts(productsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -39,68 +29,43 @@ export default function Sales() {
     }
   };
 
-  const handleCreateCampaign = (campaign: Partial<SalesCampaign>) => {
+  const handleCreateCampaign = async (campaign: Partial<SalesCampaign>) => {
     try {
-      const campaignsData = localStorage.getItem('sales_campaigns');
-      const campaigns = campaignsData ? JSON.parse(campaignsData) : [];
-
-      const newCampaign: SalesCampaign = {
-        id: Date.now().toString(),
+      const newCampaign = await supabaseDataService.createSalesCampaign({
         name: campaign.name!,
-        description: campaign.description!,
+        description: campaign.description,
         discount_percentage: campaign.discount_percentage!,
         start_date: campaign.start_date!,
         end_date: campaign.end_date!,
         active: campaign.active || false,
         product_ids: campaign.product_ids || []
-      };
+      });
 
-      campaigns.push(newCampaign);
-      localStorage.setItem('sales_campaigns', JSON.stringify(campaigns));
-      console.log('✅ Sales campaign created:', newCampaign.name, '- Dispatching update event');
-
-      // Dispatch event to update website
-      window.dispatchEvent(new Event('sales-updated'));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'sales_campaigns',
-        newValue: JSON.stringify(campaigns),
-        storageArea: localStorage
-      }));
-
-      fetchData();
-      setShowCreateModal(false);
-      alert('Campaign created successfully! It is now live on the website.');
+      if (newCampaign) {
+        console.log('✅ Sales campaign created:', newCampaign.name);
+        fetchData();
+        setShowCreateModal(false);
+        alert('Campaign created successfully! It is now live on the website.');
+      } else {
+        alert('Failed to create campaign');
+      }
     } catch (error) {
       console.error('Error creating campaign:', error);
       alert('Failed to create campaign');
     }
   };
 
-  const toggleCampaign = (id: string, active: boolean) => {
+  const toggleCampaign = async (id: string, active: boolean) => {
     try {
-      const campaignsData = localStorage.getItem('sales_campaigns');
-      const campaigns: SalesCampaign[] = campaignsData ? JSON.parse(campaignsData) : [];
+      const updated = await supabaseDataService.updateSalesCampaign(id, { active: !active });
 
-      const campaignIndex = campaigns.findIndex(c => c.id === id);
-      if (campaignIndex === -1) {
-        alert('Campaign not found');
-        return;
+      if (updated) {
+        console.log('✅ Sales campaign toggled:', updated.name, '- Active:', updated.active);
+        fetchData();
+        alert(`Campaign ${updated.active ? 'activated' : 'deactivated'} successfully! Changes are now live on the website.`);
+      } else {
+        alert('Failed to toggle campaign');
       }
-
-      campaigns[campaignIndex].active = !active;
-      localStorage.setItem('sales_campaigns', JSON.stringify(campaigns));
-      console.log('✅ Sales campaign toggled:', campaigns[campaignIndex].name, '- Active:', campaigns[campaignIndex].active);
-
-      // Dispatch event to update website
-      window.dispatchEvent(new Event('sales-updated'));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'sales_campaigns',
-        newValue: JSON.stringify(campaigns),
-        storageArea: localStorage
-      }));
-
-      fetchData();
-      alert(`Campaign ${campaigns[campaignIndex].active ? 'activated' : 'deactivated'} successfully! Changes are now live on the website.`);
     } catch (error) {
       console.error('Error toggling campaign:', error);
       alert('Failed to toggle campaign');

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Filter, Search, Package } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import PaymentMethods from '../components/PaymentMethods';
-import { dataService, ProductWithSale } from '../services/dataService';
+import ProductFeaturesCarousel from '../components/ProductFeaturesCarousel';
+import { supabaseDataService, ProductWithSale } from '../services/supabaseDataService';
 
 export default function Products() {
   const [products, setProducts] = useState<ProductWithSale[]>([]);
@@ -16,56 +16,16 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
-
-    const handleProductsUpdated = () => {
-      console.log('Products updated event received - refreshing products list');
-      fetchProducts();
-    };
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'alxne_products' || e.key === 'sales_campaigns' || e.key === null) {
-        console.log('Storage change detected - refreshing products list');
-        fetchProducts();
-      }
-    };
-
-    const handleSalesUpdated = () => {
-      console.log('Sales updated event received - refreshing products with sale prices');
-      fetchProducts();
-    };
-
-    window.addEventListener('products-updated', handleProductsUpdated);
-    window.addEventListener('sales-updated', handleSalesUpdated);
-    window.addEventListener('storage', handleStorageChange);
-
-    // Poll for changes every 3 seconds as a fallback
-    const interval = setInterval(() => {
-      const currentData = dataService.getProducts();
-      const currentString = JSON.stringify(currentData.map(p => ({ id: p.id, name: p.name })));
-      const productsString = JSON.stringify(products.map(p => ({ id: p.id, name: p.name })));
-
-      if (currentString !== productsString) {
-        console.log('Polling detected product changes');
-        fetchProducts();
-      }
-    }, 3000);
-
-    return () => {
-      window.removeEventListener('products-updated', handleProductsUpdated);
-      window.removeEventListener('sales-updated', handleSalesUpdated);
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
   }, []);
 
   useEffect(() => {
     filterProducts();
   }, [products, selectedCategory, searchQuery]);
 
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     try {
       setError(null);
-      const data = dataService.getProductsWithSales();
+      const data = await supabaseDataService.getProductsWithSales();
       console.log(`🔄 Products page refreshed - ${data.length} products loaded at ${new Date().toLocaleTimeString()}`);
       setProducts(data);
     } catch (error) {
