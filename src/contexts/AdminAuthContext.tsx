@@ -42,6 +42,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Attempting login with:', { email, password });
+      console.log('Expected credentials:', ADMIN_CREDENTIALS);
+
       if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
         const adminUser: AdminUser = {
           email,
@@ -58,9 +61,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         setAdmin(adminUser);
         return { success: true };
       } else {
+        console.log('Credentials do not match');
         return { success: false, error: 'Invalid credentials' };
       }
     } catch (error) {
+      console.error('Auth error:', error);
       return { success: false, error: 'Authentication failed' };
     }
   };
