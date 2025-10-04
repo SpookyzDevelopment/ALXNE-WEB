@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, CreditCard as Edit, Mail, Calendar, DollarSign } from 'lucide-react';
-import { dataService } from '../../services/dataService';
+import { Users, Search, Mail, Calendar, DollarSign, Bell } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 interface Customer {
   id: string;
   email: string;
+  display_name: string;
   created_at: string;
-  orders_count?: number;
+  total_orders?: number;
   total_spent?: number;
 }
 
@@ -15,22 +16,43 @@ export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationData, setNotificationData] = useState({
+    title: '',
+    message: '',
+    type: 'info',
+    link: ''
+  });
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
   }, []);
 
-  const fetchCustomers = () => {
+  const fetchCustomers = async () => {
     try {
-      const customersData = dataService.getCustomers();
-      const formattedCustomers: Customer[] = customersData.map(customer => ({
-        id: customer.id,
-        email: customer.email,
-        created_at: customer.created_at,
-        orders_count: customer.total_orders,
-        total_spent: customer.total_spent
-      }));
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) throw authError;
+
+      const formattedCustomers: Customer[] = (profiles || []).map(profile => {
+        const authUser = authUsers.users.find(u => u.id === profile.id);
+        return {
+          id: profile.id,
+          email: authUser?.email || 'No email',
+          display_name: profile.display_name,
+          created_at: profile.created_at,
+          total_orders: profile.total_orders || 0,
+          total_spent: Number(profile.total_spent) || 0
+        };
+      });
 
       setCustomers(formattedCustomers);
     } catch (error) {
@@ -40,8 +62,66 @@ export default function Customers() {
     }
   };
 
+  const toggleCustomerSelection = (customerId: string) => {
+    setSelectedCustomers(prev =>
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const selectAllCustomers = () => {
+    if (selectedCustomers.length === filteredCustomers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(filteredCustomers.map(c => c.id));
+    }
+  };
+
+  const sendNotifications = async () => {
+    if (!notificationData.title || !notificationData.message) {
+      alert('Please fill in title and message');
+      return;
+    }
+
+    if (selectedCustomers.length === 0) {
+      alert('Please select at least one customer');
+      return;
+    }
+
+    setSending(true);
+
+    try {
+      const notifications = selectedCustomers.map(userId => ({
+        user_id: userId,
+        type: notificationData.type,
+        title: notificationData.title,
+        message: notificationData.message,
+        link: notificationData.link || null,
+        read: false
+      }));
+
+      const { error } = await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      if (error) throw error;
+
+      alert(`Successfully sent ${notifications.length} notification(s)!`);
+      setShowNotificationModal(false);
+      setNotificationData({ title: '', message: '', type: 'info', link: '' });
+      setSelectedCustomers([]);
+    } catch (error) {
+      console.error('Error sending notifications:', error);
+      alert('Failed to send notifications');
+    } finally {
+      setSending(false);
+    }
+  };
+
   const filteredCustomers = customers.filter((customer) =>
-    customer.email.toLowerCase().includes(searchQuery.toLowerCase())
+    customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.display_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -57,22 +137,33 @@ export default function Customers() {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Users className="w-8 h-8 text-blue-400" />
-          <h1 className="text-4xl font-bold">Customers</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-8 h-8 text-blue-400" />
+              <h1 className="text-4xl font-bold">Customers</h1>
+            </div>
+            <p className="text-gray-400">Manage your customer base</p>
+          </div>
+          {selectedCustomers.length > 0 && (
+            <button
+              onClick={() => setShowNotificationModal(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-500 hover:to-blue-400 transition-all"
+            >
+              <Bell className="w-5 h-5" />
+              Send Notification ({selectedCustomers.length})
+            </button>
+          )}
         </div>
-        <p className="text-gray-400">Manage customer accounts and information</p>
-      </div>
 
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
-            placeholder="Search by email..."
+            placeholder="Search customers by email or name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:border-gray-700 focus:outline-none"
+            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:border-gray-700 focus:outline-none"
           />
         </div>
       </div>
@@ -80,50 +171,64 @@ export default function Customers() {
       <div className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-800/50 border-b border-gray-700">
+            <thead className="bg-gray-800/50">
               <tr>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Email</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Joined</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Orders</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Total Spent</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Actions</th>
+                <th className="px-6 py-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                    onChange={selectAllCustomers}
+                    className="w-4 h-4 rounded border-gray-700"
+                  />
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Customer</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Joined</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Orders</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-400">Total Spent</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-800">
               {filteredCustomers.map((customer) => (
-                <tr
-                  key={customer.id}
-                  className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors"
-                >
+                <tr key={customer.id} className="hover:bg-gray-800/30 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium">{customer.email}</span>
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.includes(customer.id)}
+                      onChange={() => toggleCustomerSelection(customer.id)}
+                      className="w-4 h-4 rounded border-gray-700"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+                        {customer.display_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-medium">{customer.display_name}</p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Mail className="w-4 h-4" />
+                      <span className="text-sm">{customer.email}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <Calendar className="w-4 h-4" />
-                      {new Date(customer.created_at).toLocaleDateString()}
+                      <span className="text-sm">{new Date(customer.created_at).toLocaleDateString()}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm">{customer.orders_count}</span>
+                    <span className="text-sm">{customer.total_orders || 0}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-1 text-green-400 font-medium">
+                    <div className="flex items-center gap-1 text-green-400">
                       <DollarSign className="w-4 h-4" />
-                      {customer.total_spent?.toFixed(2)}
+                      <span className="font-medium">{(customer.total_spent || 0).toFixed(2)}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => setSelectedCustomer(customer)}
-                      className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                      title="View details"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -134,76 +239,96 @@ export default function Customers() {
         {filteredCustomers.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-400">No customers found</p>
+            <p className="text-gray-400">
+              {searchQuery ? 'No customers found matching your search' : 'No customers yet'}
+            </p>
           </div>
         )}
       </div>
 
-      {selectedCustomer && (
+      {showNotificationModal && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 z-50"
-          onClick={() => setSelectedCustomer(null)}
+          onClick={() => setShowNotificationModal(false)}
         >
           <div
             className="bg-gray-900 border border-gray-800 rounded-lg p-8 max-w-2xl w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Customer Details</h2>
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
+            <h2 className="text-2xl font-bold mb-6">Send Notification</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Email</label>
-                <p className="text-lg font-medium">{selectedCustomer.email}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Customer ID</label>
-                <p className="text-sm font-mono text-gray-300">{selectedCustomer.id}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Total Orders</label>
-                  <p className="text-2xl font-bold">{selectedCustomer.orders_count}</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Total Spent</label>
-                  <p className="text-2xl font-bold text-green-400">
-                    ${selectedCustomer.total_spent?.toFixed(2)}
-                  </p>
-                </div>
+                <label className="block text-sm text-gray-400 mb-2">Notification Type</label>
+                <select
+                  value={notificationData.type}
+                  onChange={(e) => setNotificationData({ ...notificationData, type: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none"
+                >
+                  <option value="info">Info</option>
+                  <option value="success">Success</option>
+                  <option value="warning">Warning</option>
+                  <option value="error">Error</option>
+                  <option value="promotion">Promotion</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Joined Date</label>
-                <p className="text-lg">{new Date(selectedCustomer.created_at).toLocaleString()}</p>
+                <label className="block text-sm text-gray-400 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={notificationData.title}
+                  onChange={(e) => setNotificationData({ ...notificationData, title: e.target.value })}
+                  placeholder="Notification title..."
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none"
+                  required
+                />
               </div>
-            </div>
 
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => {
-                  /* Navigate to invoice creation */
-                }}
-                className="flex-1 bg-gradient-to-r from-gray-600 to-gray-500 text-white px-6 py-3 rounded-lg font-medium hover:from-gray-500 hover:to-gray-400 transition-all"
-              >
-                Create Invoice
-              </button>
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className="px-6 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Close
-              </button>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Message</label>
+                <textarea
+                  value={notificationData.message}
+                  onChange={(e) => setNotificationData({ ...notificationData, message: e.target.value })}
+                  placeholder="Your message..."
+                  rows={4}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none resize-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Link (optional)</label>
+                <input
+                  type="text"
+                  value={notificationData.link}
+                  onChange={(e) => setNotificationData({ ...notificationData, link: e.target.value })}
+                  placeholder="/products"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-gray-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400">
+                  Sending to <span className="font-bold text-white">{selectedCustomers.length}</span> customer(s)
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={sendNotifications}
+                  disabled={sending}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-500 hover:to-blue-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sending ? 'Sending...' : 'Send Notification'}
+                </button>
+                <button
+                  onClick={() => setShowNotificationModal(false)}
+                  className="px-6 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
