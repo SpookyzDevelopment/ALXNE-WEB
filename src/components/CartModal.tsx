@@ -1,6 +1,8 @@
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getCart, updateQuantity, removeFromCart, getCartTotal, clearCart, CartItem } from '../utils/cart';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -9,6 +11,8 @@ interface CartModalProps {
 
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -124,7 +128,18 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               >
                 Clear Cart
               </button>
-              <button className="flex-1 py-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-sm font-medium hover:from-gray-500 hover:to-gray-400 transition-all">
+              <button
+                onClick={() => {
+                  if (!user) {
+                    alert('Please sign in to checkout');
+                    onClose();
+                    return;
+                  }
+                  navigate('/checkout');
+                  onClose();
+                }}
+                className="flex-1 py-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-sm font-medium hover:from-gray-500 hover:to-gray-400 transition-all"
+              >
                 Checkout
               </button>
             </div>

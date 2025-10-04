@@ -2,6 +2,7 @@ import { Product } from '../lib/supabase';
 import { ShoppingCart, Check, Tag, Sparkles } from 'lucide-react';
 import { addToCart } from '../utils/cart';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
@@ -42,50 +43,54 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
 
   return (
     <div className={`bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group ${featured ? 'lg:col-span-1' : ''}`}>
-      <div className="relative h-48 overflow-hidden bg-gray-800">
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        {product.is_featured && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            FEATURED
+      <Link to={`/products/${product.id}`}>
+        <div className="relative h-48 overflow-hidden bg-gray-800">
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          {product.is_featured && (
+            <div className="absolute top-3 left-3 bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              FEATURED
+            </div>
+          )}
+          <div className="absolute top-3 right-3">
+            {getStockBadge()}
           </div>
-        )}
-        <div className="absolute top-3 right-3">
-          {getStockBadge()}
         </div>
-      </div>
+      </Link>
 
       <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="text-xl font-bold mb-1 group-hover:text-white transition-colors line-clamp-1">
-              {product.name}
-            </h3>
-            <p className="text-sm text-gray-500">{product.category}</p>
-          </div>
-          <div className="text-2xl font-bold whitespace-nowrap ml-4 bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
-            ${product.price}
-          </div>
-        </div>
-
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
-
-        <div className="space-y-2 mb-4">
-          {product.features.slice(0, 3).map((feature, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm text-gray-400">
-              <div className="bg-gradient-to-br from-gray-600/20 to-gray-500/20 rounded-full p-0.5">
-                <Check className="w-3 h-3 text-gray-300" strokeWidth={3} />
-              </div>
-              <span className="line-clamp-1">{feature}</span>
+        <Link to={`/products/${product.id}`}>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-1 group-hover:text-white transition-colors line-clamp-1">
+                {product.name}
+              </h3>
+              <p className="text-sm text-gray-500">{product.category}</p>
             </div>
-          ))}
-        </div>
+            <div className="text-2xl font-bold whitespace-nowrap ml-4 bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+              ${product.price}
+            </div>
+          </div>
+
+          <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
+
+          <div className="space-y-2 mb-4">
+            {product.features.slice(0, 3).map((feature, index) => (
+              <div key={index} className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="bg-gradient-to-br from-gray-600/20 to-gray-500/20 rounded-full p-0.5">
+                  <Check className="w-3 h-3 text-gray-300" strokeWidth={3} />
+                </div>
+                <span className="line-clamp-1">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </Link>
 
         <button
           onClick={handleAddToCart}
