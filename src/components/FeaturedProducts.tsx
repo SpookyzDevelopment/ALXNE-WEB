@@ -45,6 +45,7 @@ export default function FeaturedProducts() {
   const fetchFeaturedProducts = () => {
     try {
       const data = dataService.getFeaturedProducts().slice(0, 4);
+      console.log(`🔄 Featured products refreshed - ${data.length} products loaded at ${new Date().toLocaleTimeString()}`);
       setFeaturedProducts(data);
     } catch (error) {
       console.error('Error fetching featured products:', error);

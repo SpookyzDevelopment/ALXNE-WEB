@@ -55,6 +55,7 @@ export default function Products() {
     try {
       setError(null);
       const data = dataService.getProducts();
+      console.log(`🔄 Products page refreshed - ${data.length} products loaded at ${new Date().toLocaleTimeString()}`);
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
