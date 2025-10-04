@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import { dataService, Product } from '../services/dataService';
+import { dataService, ProductWithSale } from '../services/dataService';
 
 export default function FeaturedProducts() {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductWithSale[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,13 +17,19 @@ export default function FeaturedProducts() {
     };
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'alxne_products' || e.key === null) {
+      if (e.key === 'alxne_products' || e.key === 'sales_campaigns' || e.key === null) {
         console.log('Featured products storage change detected');
         fetchFeaturedProducts();
       }
     };
 
+    const handleSalesUpdated = () => {
+      console.log('Sales updated - refreshing featured products with sale prices');
+      fetchFeaturedProducts();
+    };
+
     window.addEventListener('products-updated', handleProductsUpdated);
+    window.addEventListener('sales-updated', handleSalesUpdated);
     window.addEventListener('storage', handleStorageChange);
 
     // Poll for changes every 3 seconds
@@ -40,6 +46,7 @@ export default function FeaturedProducts() {
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
+      window.removeEventListener('sales-updated', handleSalesUpdated);
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
@@ -47,7 +54,8 @@ export default function FeaturedProducts() {
 
   const fetchFeaturedProducts = () => {
     try {
-      const data = dataService.getFeaturedProducts().slice(0, 4);
+      const allProducts = dataService.getProductsWithSales();
+      const data = allProducts.filter(p => p.is_featured).slice(0, 4);
       console.log(`🔄 Featured products refreshed - ${data.length} products loaded at ${new Date().toLocaleTimeString()}`);
       setFeaturedProducts(data);
     } catch (error) {

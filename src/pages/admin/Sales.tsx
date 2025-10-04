@@ -57,26 +57,53 @@ export default function Sales() {
 
       campaigns.push(newCampaign);
       localStorage.setItem('sales_campaigns', JSON.stringify(campaigns));
+      console.log('✅ Sales campaign created:', newCampaign.name, '- Dispatching update event');
+
+      // Dispatch event to update website
+      window.dispatchEvent(new Event('sales-updated'));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'sales_campaigns',
+        newValue: JSON.stringify(campaigns),
+        storageArea: localStorage
+      }));
 
       fetchData();
       setShowCreateModal(false);
+      alert('Campaign created successfully! It is now live on the website.');
     } catch (error) {
       console.error('Error creating campaign:', error);
       alert('Failed to create campaign');
     }
   };
 
-  const toggleCampaign = async (id: string, active: boolean) => {
+  const toggleCampaign = (id: string, active: boolean) => {
     try {
-      const { error } = await supabase
-        .from('sales_campaigns')
-        .update({ active: !active })
-        .eq('id', id);
+      const campaignsData = localStorage.getItem('sales_campaigns');
+      const campaigns: SalesCampaign[] = campaignsData ? JSON.parse(campaignsData) : [];
 
-      if (error) throw error;
-      await fetchData();
+      const campaignIndex = campaigns.findIndex(c => c.id === id);
+      if (campaignIndex === -1) {
+        alert('Campaign not found');
+        return;
+      }
+
+      campaigns[campaignIndex].active = !active;
+      localStorage.setItem('sales_campaigns', JSON.stringify(campaigns));
+      console.log('✅ Sales campaign toggled:', campaigns[campaignIndex].name, '- Active:', campaigns[campaignIndex].active);
+
+      // Dispatch event to update website
+      window.dispatchEvent(new Event('sales-updated'));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'sales_campaigns',
+        newValue: JSON.stringify(campaigns),
+        storageArea: localStorage
+      }));
+
+      fetchData();
+      alert(`Campaign ${campaigns[campaignIndex].active ? 'activated' : 'deactivated'} successfully! Changes are now live on the website.`);
     } catch (error) {
       console.error('Error toggling campaign:', error);
+      alert('Failed to toggle campaign');
     }
   };
 

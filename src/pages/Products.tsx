@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Filter, Search, Package } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { dataService, Product } from '../services/dataService';
+import { dataService, ProductWithSale } from '../services/dataService';
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithSale[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductWithSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -22,13 +22,19 @@ export default function Products() {
     };
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'alxne_products' || e.key === null) {
+      if (e.key === 'alxne_products' || e.key === 'sales_campaigns' || e.key === null) {
         console.log('Storage change detected - refreshing products list');
         fetchProducts();
       }
     };
 
+    const handleSalesUpdated = () => {
+      console.log('Sales updated event received - refreshing products with sale prices');
+      fetchProducts();
+    };
+
     window.addEventListener('products-updated', handleProductsUpdated);
+    window.addEventListener('sales-updated', handleSalesUpdated);
     window.addEventListener('storage', handleStorageChange);
 
     // Poll for changes every 3 seconds as a fallback
@@ -45,6 +51,7 @@ export default function Products() {
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
+      window.removeEventListener('sales-updated', handleSalesUpdated);
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
@@ -57,7 +64,7 @@ export default function Products() {
   const fetchProducts = () => {
     try {
       setError(null);
-      const data = dataService.getProducts();
+      const data = dataService.getProductsWithSales();
       console.log(`🔄 Products page refreshed - ${data.length} products loaded at ${new Date().toLocaleTimeString()}`);
       setProducts(data);
     } catch (error) {

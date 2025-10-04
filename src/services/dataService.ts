@@ -32,6 +32,23 @@ export interface Customer {
   total_spent: number;
 }
 
+export interface SalesCampaign {
+  id: string;
+  name: string;
+  description: string;
+  discount_percentage: number;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+  product_ids: string[];
+}
+
+export interface ProductWithSale extends Product {
+  original_price?: number;
+  sale_discount?: number;
+  on_sale?: boolean;
+}
+
 const STORAGE_KEYS = {
   PRODUCTS: 'alxne_products',
   ORDERS: 'alxne_orders',
@@ -247,11 +264,53 @@ class DataService {
     localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
   }
 
+  getActiveSales(): SalesCampaign[] {
+    const data = localStorage.getItem('sales_campaigns');
+    const campaigns: SalesCampaign[] = data ? JSON.parse(data) : [];
+    const now = new Date();
+
+    return campaigns.filter(campaign => {
+      if (!campaign.active) return false;
+      const startDate = new Date(campaign.start_date);
+      const endDate = new Date(campaign.end_date);
+      return now >= startDate && now <= endDate;
+    });
+  }
+
+  getProductsWithSales(): ProductWithSale[] {
+    const products = this.getProducts();
+    const activeSales = this.getActiveSales();
+
+    return products.map(product => {
+      // Find if product is in any active sale
+      const sale = activeSales.find(s => s.product_ids.includes(product.id));
+
+      if (sale) {
+        const discountedPrice = product.price * (1 - sale.discount_percentage / 100);
+        return {
+          ...product,
+          original_price: product.price,
+          price: discountedPrice,
+          sale_discount: sale.discount_percentage,
+          on_sale: true
+        };
+      }
+
+      return product;
+    });
+  }
+
+  getProductWithSale(id: string): ProductWithSale | null {
+    const products = this.getProductsWithSales();
+    return products.find(p => p.id === id) || null;
+  }
+
   clearAllData() {
     localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     localStorage.removeItem(STORAGE_KEYS.ORDERS);
     localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
     localStorage.removeItem(STORAGE_KEYS.INITIALIZED);
+    localStorage.removeItem('sales_campaigns');
     this.initializeData();
   }
 

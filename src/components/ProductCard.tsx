@@ -1,11 +1,11 @@
-import { Product } from '../services/dataService';
+import { ProductWithSale } from '../services/dataService';
 import { ShoppingCart, Check, Tag, Sparkles, Star, Percent } from 'lucide-react';
 import { addToCart } from '../utils/cart';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductWithSale;
   featured?: boolean;
 }
 
@@ -59,10 +59,10 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                 FEATURED
               </div>
             )}
-            {product.discount_percentage && product.discount_percentage > 0 && (
+            {product.on_sale && product.sale_discount && product.sale_discount > 0 && (
               <div className="bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
                 <Percent className="w-3 h-3" />
-                {product.discount_percentage}% OFF
+                {product.sale_discount}% OFF
               </div>
             )}
           </div>
@@ -99,16 +99,16 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
               )}
             </div>
             <div className="flex flex-col items-end ml-4">
-              {product.discount_percentage && product.discount_percentage > 0 && product.original_price ? (
+              {product.on_sale && product.original_price ? (
                 <>
-                  <span className="text-sm text-gray-500 line-through">${product.original_price}</span>
-                  <span className="text-2xl font-bold whitespace-nowrap bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
-                    ${product.price}
+                  <span className="text-sm text-gray-500 line-through">${product.original_price.toFixed(2)}</span>
+                  <span className="text-2xl font-bold whitespace-nowrap bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                    ${product.price.toFixed(2)}
                   </span>
                 </>
               ) : (
                 <span className="text-2xl font-bold whitespace-nowrap bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
-                  ${product.price}
+                  ${product.price.toFixed(2)}
                 </span>
               )}
             </div>
