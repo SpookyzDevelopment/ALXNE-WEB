@@ -159,6 +159,7 @@ class DataService {
     };
     products.push(newProduct);
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    window.dispatchEvent(new Event('products-updated'));
     return newProduct;
   }
 
@@ -170,6 +171,7 @@ class DataService {
 
     products[index] = { ...products[index], ...updates };
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    window.dispatchEvent(new Event('products-updated'));
     return products[index];
   }
 
@@ -180,6 +182,7 @@ class DataService {
     if (filtered.length === products.length) return false;
 
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
+    window.dispatchEvent(new Event('products-updated'));
     return true;
   }
 

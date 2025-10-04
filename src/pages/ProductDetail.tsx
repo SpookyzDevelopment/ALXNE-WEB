@@ -28,6 +28,18 @@ export default function ProductDetail() {
     if (id) {
       fetchProduct();
     }
+
+    const handleProductsUpdated = () => {
+      if (id) {
+        fetchProduct();
+      }
+    };
+
+    window.addEventListener('products-updated', handleProductsUpdated);
+
+    return () => {
+      window.removeEventListener('products-updated', handleProductsUpdated);
+    };
   }, [id]);
 
   const fetchProduct = () => {

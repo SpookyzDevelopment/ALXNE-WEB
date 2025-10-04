@@ -10,6 +10,16 @@ export default function FeaturedProducts() {
 
   useEffect(() => {
     fetchFeaturedProducts();
+
+    const handleProductsUpdated = () => {
+      fetchFeaturedProducts();
+    };
+
+    window.addEventListener('products-updated', handleProductsUpdated);
+
+    return () => {
+      window.removeEventListener('products-updated', handleProductsUpdated);
+    };
   }, []);
 
   const fetchFeaturedProducts = () => {

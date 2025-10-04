@@ -12,6 +12,16 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
+
+    const handleProductsUpdated = () => {
+      fetchProducts();
+    };
+
+    window.addEventListener('products-updated', handleProductsUpdated);
+
+    return () => {
+      window.removeEventListener('products-updated', handleProductsUpdated);
+    };
   }, []);
 
   const fetchProducts = () => {
@@ -26,12 +36,13 @@ export default function Products() {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Are you sure you want to delete this product? It will be removed from the website immediately.')) return;
 
     try {
       const success = dataService.deleteProduct(id);
       if (success) {
         setProducts(products.filter((p) => p.id !== id));
+        alert('Product deleted successfully! It has been removed from the website.');
       } else {
         alert('Failed to delete product');
       }
@@ -45,8 +56,10 @@ export default function Products() {
     try {
       if (editingProduct) {
         dataService.updateProduct(editingProduct.id, product);
+        alert('Product updated successfully! Changes are now live on the website.');
       } else {
         dataService.createProduct(product as Omit<Product, 'id' | 'created_at'>);
+        alert('Product created successfully! It is now visible on the website.');
       }
 
       fetchProducts();

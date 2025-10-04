@@ -15,6 +15,16 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
+
+    const handleProductsUpdated = () => {
+      fetchProducts();
+    };
+
+    window.addEventListener('products-updated', handleProductsUpdated);
+
+    return () => {
+      window.removeEventListener('products-updated', handleProductsUpdated);
+    };
   }, []);
 
   useEffect(() => {
