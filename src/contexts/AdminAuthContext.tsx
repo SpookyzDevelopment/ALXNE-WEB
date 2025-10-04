@@ -14,7 +14,7 @@ interface AdminAuthContextType {
   signOut: () => void;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextContextType | undefined>(undefined);
+const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
