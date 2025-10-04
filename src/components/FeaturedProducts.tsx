@@ -13,34 +13,37 @@ export default function FeaturedProducts() {
 
     const handleProductsUpdated = () => {
       console.log('Featured products updated event received');
-      setTimeout(() => fetchFeaturedProducts(), 100);
+      fetchFeaturedProducts();
     };
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'alxne_products' || e.key === null) {
         console.log('Featured products storage change detected');
-        setTimeout(() => fetchFeaturedProducts(), 100);
+        fetchFeaturedProducts();
       }
     };
 
     window.addEventListener('products-updated', handleProductsUpdated);
     window.addEventListener('storage', handleStorageChange);
 
-    // Poll for changes every 2 seconds
+    // Poll for changes every 3 seconds
     const interval = setInterval(() => {
       const currentData = dataService.getFeaturedProducts().slice(0, 4);
-      if (JSON.stringify(currentData) !== JSON.stringify(featuredProducts)) {
+      const currentString = JSON.stringify(currentData.map(p => ({ id: p.id, name: p.name })));
+      const featuredString = JSON.stringify(featuredProducts.map(p => ({ id: p.id, name: p.name })));
+
+      if (currentString !== featuredString) {
         console.log('Polling detected featured product changes');
         fetchFeaturedProducts();
       }
-    }, 2000);
+    }, 3000);
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
-  }, [featuredProducts]);
+  }, []);
 
   const fetchFeaturedProducts = () => {
     try {

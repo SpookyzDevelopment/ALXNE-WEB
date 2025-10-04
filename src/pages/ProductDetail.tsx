@@ -31,14 +31,24 @@ export default function ProductDetail() {
 
     const handleProductsUpdated = () => {
       if (id) {
+        console.log('Product detail update event received');
+        fetchProduct();
+      }
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if ((e.key === 'alxne_products' || e.key === null) && id) {
+        console.log('Product detail storage change detected');
         fetchProduct();
       }
     };
 
     window.addEventListener('products-updated', handleProductsUpdated);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [id]);
 

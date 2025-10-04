@@ -14,13 +14,23 @@ export default function Products() {
     fetchProducts();
 
     const handleProductsUpdated = () => {
+      console.log('Admin products list update event received');
       fetchProducts();
     };
 
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'alxne_products' || e.key === null) {
+        console.log('Admin products storage change detected');
+        fetchProducts();
+      }
+    };
+
     window.addEventListener('products-updated', handleProductsUpdated);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

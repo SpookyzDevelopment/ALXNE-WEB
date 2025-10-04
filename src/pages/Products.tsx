@@ -18,34 +18,37 @@ export default function Products() {
 
     const handleProductsUpdated = () => {
       console.log('Products updated event received - refreshing products list');
-      setTimeout(() => fetchProducts(), 100);
+      fetchProducts();
     };
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'alxne_products' || e.key === null) {
         console.log('Storage change detected - refreshing products list');
-        setTimeout(() => fetchProducts(), 100);
+        fetchProducts();
       }
     };
 
     window.addEventListener('products-updated', handleProductsUpdated);
     window.addEventListener('storage', handleStorageChange);
 
-    // Also poll for changes every 2 seconds as a fallback
+    // Poll for changes every 3 seconds as a fallback
     const interval = setInterval(() => {
       const currentData = dataService.getProducts();
-      if (JSON.stringify(currentData) !== JSON.stringify(products)) {
+      const currentString = JSON.stringify(currentData.map(p => ({ id: p.id, name: p.name })));
+      const productsString = JSON.stringify(products.map(p => ({ id: p.id, name: p.name })));
+
+      if (currentString !== productsString) {
         console.log('Polling detected product changes');
         fetchProducts();
       }
-    }, 2000);
+    }, 3000);
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
-  }, [products]);
+  }, []);
 
   useEffect(() => {
     filterProducts();
