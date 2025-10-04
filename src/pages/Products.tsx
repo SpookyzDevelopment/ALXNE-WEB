@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Filter, Search, Package } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import PaymentMethods from '../components/PaymentMethods';
 import { dataService, ProductWithSale } from '../services/dataService';
 
 export default function Products() {
@@ -182,6 +183,8 @@ export default function Products() {
           </div>
         )}
       </div>
+
+      <PaymentMethods />
     </section>
   );
 }
