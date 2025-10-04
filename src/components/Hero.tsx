@@ -1,29 +1,58 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Hero() {
   return (
-    <section className="pt-32 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="max-w-3xl">
-          <div className="inline-block mb-4 px-4 py-1 bg-gray-900 border border-gray-800 rounded-sm text-sm text-gray-300">
-            Premium Account Services
+    <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm text-cyan-400 font-medium">Welcome to the Future of Account Management</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-            Secure Account
+
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight leading-tight">
+            Your Digital Life,
             <br />
-            <span className="text-gray-400">Management</span>
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              Simplified
+            </span>
           </h1>
-          <p className="text-xl text-gray-400 mb-8 leading-relaxed">
-            Professional account and service provider delivering secure, reliable solutions for your digital needs. Enterprise-grade security with 24/7 support.
+
+          <p className="text-xl md:text-2xl text-gray-400 mb-10 leading-relaxed max-w-3xl mx-auto">
+            Experience seamless account management with enterprise-grade security.
+            Join thousands of satisfied users who trust ALXNE for their digital needs.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-white text-black px-8 py-4 rounded-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 group">
-              <span>View Services</span>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link
+              to="/products"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-8 py-4 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all flex items-center justify-center space-x-2 group shadow-lg shadow-blue-500/25"
+            >
+              <span>Explore Products</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="border border-gray-700 text-white px-8 py-4 rounded-sm font-medium hover:bg-gray-900 transition-colors">
-              Contact Sales
-            </button>
+            </Link>
+            <a
+              href="#services"
+              className="border border-gray-700 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-900 hover:border-gray-600 transition-all"
+            >
+              Learn More
+            </a>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span>All systems operational</span>
+            </div>
+            <div className="hidden sm:block w-1 h-1 bg-gray-700 rounded-full" />
+            <span>Trusted by 50,000+ users</span>
+            <div className="hidden sm:block w-1 h-1 bg-gray-700 rounded-full" />
+            <span>99.9% uptime guarantee</span>
           </div>
         </div>
       </div>
