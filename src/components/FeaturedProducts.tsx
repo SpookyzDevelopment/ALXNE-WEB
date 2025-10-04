@@ -12,15 +12,35 @@ export default function FeaturedProducts() {
     fetchFeaturedProducts();
 
     const handleProductsUpdated = () => {
-      fetchFeaturedProducts();
+      console.log('Featured products updated event received');
+      setTimeout(() => fetchFeaturedProducts(), 100);
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'alxne_products' || e.key === null) {
+        console.log('Featured products storage change detected');
+        setTimeout(() => fetchFeaturedProducts(), 100);
+      }
     };
 
     window.addEventListener('products-updated', handleProductsUpdated);
+    window.addEventListener('storage', handleStorageChange);
+
+    // Poll for changes every 2 seconds
+    const interval = setInterval(() => {
+      const currentData = dataService.getFeaturedProducts().slice(0, 4);
+      if (JSON.stringify(currentData) !== JSON.stringify(featuredProducts)) {
+        console.log('Polling detected featured product changes');
+        fetchFeaturedProducts();
+      }
+    }, 2000);
 
     return () => {
       window.removeEventListener('products-updated', handleProductsUpdated);
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
     };
-  }, []);
+  }, [featuredProducts]);
 
   const fetchFeaturedProducts = () => {
     try {

@@ -159,6 +159,7 @@ class DataService {
     };
     products.push(newProduct);
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    console.log('✅ Product created:', newProduct.name, '- Dispatching update event');
     window.dispatchEvent(new Event('products-updated'));
     return newProduct;
   }
@@ -171,17 +172,20 @@ class DataService {
 
     products[index] = { ...products[index], ...updates };
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    console.log('✅ Product updated:', products[index].name, '- Dispatching update event');
     window.dispatchEvent(new Event('products-updated'));
     return products[index];
   }
 
   deleteProduct(id: string): boolean {
     const products = this.getProducts();
+    const productToDelete = products.find(p => p.id === id);
     const filtered = products.filter(p => p.id !== id);
 
     if (filtered.length === products.length) return false;
 
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(filtered));
+    console.log('✅ Product deleted:', productToDelete?.name, '- Dispatching update event');
     window.dispatchEvent(new Event('products-updated'));
     return true;
   }
