@@ -42,7 +42,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
   };
 
   return (
-    <div className={`bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group ${featured ? 'lg:col-span-1' : ''}`}>
+    <div className={`bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all duration-500 group hover:scale-105 hover:shadow-2xl hover:shadow-gray-500/10 ${featured ? 'lg:col-span-1' : ''}`}>
       <Link to={`/products/${product.id}`}>
         <div className="relative h-48 overflow-hidden bg-gray-800">
           <img
@@ -51,7 +51,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {product.is_featured && (
               <div className="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
@@ -60,7 +60,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
               </div>
             )}
             {product.on_sale && product.sale_discount && product.sale_discount > 0 && (
-              <div className="bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1">
+              <div className="bg-gradient-to-r from-red-600 to-red-500 text-white px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1 animate-slide-in-left shadow-lg">
                 <Percent className="w-3 h-3" />
                 {product.sale_discount}% OFF
               </div>
@@ -131,12 +131,12 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
         <button
           onClick={handleAddToCart}
           disabled={product.stock_status === 'out_of_stock' || isAdding}
-          className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
             product.stock_status === 'out_of_stock'
               ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
               : isAdding
-              ? 'bg-green-500 text-white'
-              : 'bg-gradient-to-r from-gray-600 to-gray-500 text-white hover:from-gray-500 hover:to-gray-400 shadow-lg shadow-gray-500/25 hover:shadow-gray-500/40'
+              ? 'bg-green-500 text-white scale-95'
+              : 'bg-gradient-to-r from-gray-600 to-gray-500 text-white hover:from-gray-500 hover:to-gray-400 shadow-lg shadow-gray-500/25 hover:shadow-gray-500/40 hover:scale-105'
           }`}
         >
           {isAdding ? (

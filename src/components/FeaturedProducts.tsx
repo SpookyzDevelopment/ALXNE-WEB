@@ -102,8 +102,14 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} featured />
+          {featuredProducts.map((product, index) => (
+            <div
+              key={product.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <ProductCard product={product} featured />
+            </div>
           ))}
         </div>
 
