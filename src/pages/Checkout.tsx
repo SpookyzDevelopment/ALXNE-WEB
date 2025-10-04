@@ -73,8 +73,22 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
+      for (const item of cart) {
+        const { data: licenseKeyData } = await supabase.rpc('generate_license_key');
+
+        if (licenseKeyData) {
+          await supabase.from('licenses').insert({
+            user_id: user!.id,
+            product_id: item.id,
+            order_id: order.id,
+            license_key: licenseKeyData,
+            status: 'active'
+          });
+        }
+      }
+
       clearCart();
-      navigate('/orders');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Error creating order:', error);
       alert('Failed to place order. Please try again.');

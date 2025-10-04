@@ -1,4 +1,4 @@
-import { Shield, Menu, X, ShoppingBag, User, LogOut } from 'lucide-react';
+import { Shield, Menu, X, ShoppingBag, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import CartButton from './CartButton';
@@ -88,6 +88,14 @@ export default function Header() {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl animate-in">
                     <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                    <Link
                       to="/profile"
                       className="block px-4 py-2 text-gray-300 hover:bg-gray-800 transition-colors"
                       onClick={() => setUserMenuOpen(false)}
@@ -153,6 +161,10 @@ export default function Header() {
             <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="block text-gray-300 hover:text-white transition-colors">Contact</a>
             {user ? (
               <>
+                <Link to="/dashboard" className="block text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
                 <Link to="/profile" className="block text-gray-300 hover:text-white transition-colors">My Profile</Link>
                 <Link to="/orders" className="block text-gray-300 hover:text-white transition-colors">My Orders</Link>
                 <Link to="/wishlist" className="block text-gray-300 hover:text-white transition-colors">Wishlist</Link>
