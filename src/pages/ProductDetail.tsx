@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingCart, Heart, Star, Package, CheckCircle } from 'lucide-react';
 import { dataService, Product } from '../services/dataService';
 import { addToCart } from '../utils/cart';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Review {
   id: string;

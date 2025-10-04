@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, CreditCard as Edit, Mail, Calendar, DollarSign } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { dataService } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 interface Customer {
@@ -21,32 +21,18 @@ export default function Customers() {
     fetchCustomers();
   }, []);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = () => {
     try {
-      const { data: usersData, error } = await supabase.auth.admin.listUsers();
+      const customersData = dataService.getCustomers();
+      const formattedCustomers: Customer[] = customersData.map(customer => ({
+        id: customer.id,
+        email: customer.email,
+        created_at: customer.created_at,
+        orders_count: customer.total_orders,
+        total_spent: customer.total_spent
+      }));
 
-      if (error) throw error;
-
-      const customersWithStats = await Promise.all(
-        (usersData?.users || []).map(async (user) => {
-          const { data: orders } = await supabase
-            .from('orders')
-            .select('total')
-            .eq('user_id', user.id);
-
-          const totalSpent = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-
-          return {
-            id: user.id,
-            email: user.email || 'N/A',
-            created_at: user.created_at,
-            orders_count: orders?.length || 0,
-            total_spent: totalSpent,
-          };
-        })
-      );
-
-      setCustomers(customersWithStats);
+      setCustomers(formattedCustomers);
     } catch (error) {
       console.error('Error fetching customers:', error);
     } finally {

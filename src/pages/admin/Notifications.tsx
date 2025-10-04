@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bell, Send, Users, User } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { dataService } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function Notifications() {
@@ -19,35 +19,38 @@ export default function Notifications() {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = () => {
     try {
-      const { data: usersData, error } = await supabase.auth.admin.listUsers();
-      if (error) throw error;
-      setUsers(usersData?.users || []);
+      const customers = dataService.getCustomers();
+      setUsers(customers);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const notificationsData = localStorage.getItem('notifications');
+      const notifications = notificationsData ? JSON.parse(notificationsData) : [];
+
       if (formData.recipient === 'all') {
-        const notifications = users.map((user) => ({
+        const newNotifications = users.map((user) => ({
+          id: `${Date.now()}-${user.id}`,
           user_id: user.id,
           type: formData.type,
           title: formData.title,
           message: formData.message,
           link: formData.link || null,
           read: false,
+          created_at: new Date().toISOString()
         }));
 
-        const { error } = await supabase.from('notifications').insert(notifications);
-        if (error) throw error;
+        notifications.push(...newNotifications);
       } else {
-        const { error } = await supabase.from('notifications').insert({
+        notifications.push({
           user_id: formData.user_id,
           type: formData.type,
           title: formData.title,

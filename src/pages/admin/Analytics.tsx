@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, DollarSign, Package, ShoppingBag } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { dataService } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function Analytics() {
@@ -20,28 +20,26 @@ export default function Analytics() {
     fetchAnalytics();
   }, []);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = () => {
     try {
-      const [orders, users, products] = await Promise.all([
-        supabase.from('orders').select('total, created_at'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('products').select('id', { count: 'exact', head: true }),
-      ]);
+      const orders = dataService.getOrders();
+      const customers = dataService.getCustomers();
+      const products = dataService.getProducts();
 
-      const totalRevenue = orders.data?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
+      const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
 
       const now = new Date();
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
-      const lastMonthOrders = orders.data?.filter(
+      const lastMonthOrders = orders.filter(
         (o) => new Date(o.created_at) >= lastMonth
-      ) || [];
-      const previousMonthOrders = orders.data?.filter(
+      );
+      const previousMonthOrders = orders.filter(
         (o) => new Date(o.created_at) < lastMonth
-      ) || [];
+      );
 
-      const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + Number(o.total), 0);
-      const previousMonthRevenue = previousMonthOrders.reduce((sum, o) => sum + Number(o.total), 0);
+      const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => sum + o.amount, 0);
+      const previousMonthRevenue = previousMonthOrders.reduce((sum, o) => sum + o.amount, 0);
 
       const revenueGrowth = previousMonthRevenue > 0
         ? ((lastMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
@@ -53,28 +51,27 @@ export default function Analytics() {
 
       setStats({
         totalRevenue,
-        totalOrders: orders.data?.length || 0,
-        totalUsers: users.count || 0,
-        totalProducts: products.count || 0,
+        totalOrders: orders.length,
+        totalUsers: customers.length,
+        totalProducts: products.length,
         revenueGrowth,
         ordersGrowth,
       });
 
-      const { data: topProductsData } = await supabase
-        .from('products')
-        .select('id, name, price, image_url')
-        .order('views_count', { ascending: false })
-        .limit(5);
+      const topProductsData = products.slice(0, 5);
+      setTopProducts(topProductsData);
 
-      setTopProducts(topProductsData || []);
+      const recentOrdersData = orders
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5)
+        .map(order => ({
+          id: order.id,
+          total: order.amount,
+          status: order.status,
+          created_at: order.created_at
+        }));
 
-      const { data: recentOrdersData } = await supabase
-        .from('orders')
-        .select('id, total, status, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      setRecentOrders(recentOrdersData || []);
+      setRecentOrders(recentOrdersData);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {

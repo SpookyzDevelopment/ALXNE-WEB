@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileText, Plus, DollarSign, Calendar } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { dataService } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 interface Invoice {
@@ -26,25 +26,26 @@ export default function Invoices() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = () => {
     try {
-      const [invoicesRes, usersData] = await Promise.all([
-        supabase.from('stripe_invoices').select('*').order('created_at', { ascending: false }),
-        supabase.auth.admin.listUsers(),
-      ]);
+      const orders = dataService.getOrders();
+      const customers = dataService.getCustomers();
 
-      const invoicesWithEmails = await Promise.all(
-        (invoicesRes.data || []).map(async (invoice) => {
-          const user = usersData.data?.users.find((u) => u.id === invoice.user_id);
-          return {
-            ...invoice,
-            user_email: user?.email || 'Unknown',
-          };
-        })
-      );
+      const invoiceData: Invoice[] = orders.map(order => ({
+        id: order.id,
+        user_id: order.user_id,
+        stripe_invoice_id: null,
+        amount: order.amount,
+        currency: 'usd',
+        status: order.status === 'completed' ? 'paid' : 'pending',
+        description: order.product_name,
+        created_at: order.created_at,
+        paid_at: order.status === 'completed' ? order.created_at : null,
+        user_email: order.user_email
+      }));
 
-      setInvoices(invoicesWithEmails);
-      setUsers(usersData.data?.users || []);
+      setInvoices(invoiceData);
+      setUsers(customers);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -52,20 +53,28 @@ export default function Invoices() {
     }
   };
 
-  const handleCreateInvoice = async (invoice: Partial<Invoice>) => {
+  const handleCreateInvoice = (invoice: Partial<Invoice>) => {
     try {
-      const { error } = await supabase.from('stripe_invoices').insert(invoice);
-      if (error) throw error;
+      const invoicesData = localStorage.getItem('invoices');
+      const invoices = invoicesData ? JSON.parse(invoicesData) : [];
 
-      await supabase.from('notifications').insert({
-        user_id: invoice.user_id,
-        type: 'invoice',
-        title: 'New Invoice',
-        message: `You have a new invoice for $${invoice.amount}`,
-        read: false,
-      });
+      const newInvoice: Invoice = {
+        id: Date.now().toString(),
+        user_id: invoice.user_id!,
+        stripe_invoice_id: null,
+        amount: invoice.amount!,
+        currency: invoice.currency!,
+        status: invoice.status!,
+        description: invoice.description!,
+        created_at: new Date().toISOString(),
+        paid_at: null,
+        user_email: users.find(u => u.id === invoice.user_id)?.email || 'Unknown'
+      };
 
-      await fetchData();
+      invoices.push(newInvoice);
+      localStorage.setItem('invoices', JSON.stringify(invoices));
+
+      fetchData();
       setShowCreateModal(false);
       alert('Invoice created successfully!');
     } catch (error) {

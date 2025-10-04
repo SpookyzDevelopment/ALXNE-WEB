@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, Calendar, Percent, Check, X } from 'lucide-react';
-import { supabase, Product } from '../../lib/supabase';
+import { dataService, Product } from '../../services/dataService';
 import AdminLayout from '../../components/admin/AdminLayout';
 
 interface SalesCampaign {
@@ -24,15 +24,14 @@ export default function Sales() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = () => {
     try {
-      const [campaignsRes, productsRes] = await Promise.all([
-        supabase.from('sales_campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('products').select('*'),
-      ]);
+      const campaignsData = localStorage.getItem('sales_campaigns');
+      const campaigns = campaignsData ? JSON.parse(campaignsData) : [];
+      const products = dataService.getProducts();
 
-      setCampaigns(campaignsRes.data || []);
-      setProducts(productsRes.data || []);
+      setCampaigns(campaigns);
+      setProducts(products);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -40,12 +39,26 @@ export default function Sales() {
     }
   };
 
-  const handleCreateCampaign = async (campaign: Partial<SalesCampaign>) => {
+  const handleCreateCampaign = (campaign: Partial<SalesCampaign>) => {
     try {
-      const { error } = await supabase.from('sales_campaigns').insert(campaign);
-      if (error) throw error;
+      const campaignsData = localStorage.getItem('sales_campaigns');
+      const campaigns = campaignsData ? JSON.parse(campaignsData) : [];
 
-      await fetchData();
+      const newCampaign: SalesCampaign = {
+        id: Date.now().toString(),
+        name: campaign.name!,
+        description: campaign.description!,
+        discount_percentage: campaign.discount_percentage!,
+        start_date: campaign.start_date!,
+        end_date: campaign.end_date!,
+        active: campaign.active || false,
+        product_ids: campaign.product_ids || []
+      };
+
+      campaigns.push(newCampaign);
+      localStorage.setItem('sales_campaigns', JSON.stringify(campaigns));
+
+      fetchData();
       setShowCreateModal(false);
     } catch (error) {
       console.error('Error creating campaign:', error);
